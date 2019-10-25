@@ -8,6 +8,16 @@ A flask web service to colorize gray scale images using Convolutional Neural Net
 pip install -r requirements.txt
 ```
 
+## Samples
+![Grayscale lady image](https://github.com/vivekkairi/colorization/blob/master/static/processed_png/lady.png)
+![RGB lady image](https://github.com/vivekkairi/colorization/blob/master/static/colored_img/lady.png)
+
+![Grayscale bird](https://github.com/vivekkairi/colorization/blob/master/static/processed_png/bird.png)
+![Colorized bird](https://github.com/vivekkairi/colorization/blob/master/static/colored_img/bird.png)
+
+![Grayscale girl](https://github.com/vivekkairi/colorization/blob/master/static/processed_png/girl.png)
+![Grayscale girl](https://github.com/vivekkairi/colorization/blob/master/static/colored_img/girl.png)
+
 ## Usage
 
 Open app.py and change UPLOAD_FOLDER
