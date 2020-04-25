@@ -8,7 +8,7 @@ Flask == 1.0.2
 Keras == 2.2.5
 
 # app.py: 13
-Pillow == 6.2.0
+Pillow>=6.2.2
 
 # app.py: 2
 Werkzeug == 0.15.3
