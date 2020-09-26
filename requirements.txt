@@ -20,4 +20,4 @@ numpy == 1.17.0
 scikit_image == 0.15.0
 
 # app.py: 6
-tensorflow == 1.15.2
+tensorflow == 1.15.4
