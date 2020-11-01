@@ -1,26 +1,23 @@
 from flask import Flask, flash, request, redirect, url_for, render_template
 from werkzeug.utils import secure_filename
 import os
-from keras.models import load_model
-from keras.applications.inception_resnet_v2 import InceptionResNetV2
 import tensorflow as tf
+from tensorflow.keras.models import load_model
+from tensorflow.keras.applications.inception_resnet_v2 import InceptionResNetV2
 from skimage.io import imsave
 from skimage.transform import resize
 import numpy as np
-from keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
+from tensorflow.keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
 from skimage.color import rgb2lab, lab2rgb, rgb2gray, gray2rgb
-from keras.applications.inception_resnet_v2 import preprocess_input
+from tensorflow.keras.applications.inception_resnet_v2 import preprocess_input
 from PIL import Image,ImageChops
 import logging 
 
-
-global graph
-graph = tf.get_default_graph()
 app = Flask(__name__)
 app.secret_key = "hello"
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
 model = load_model('trained-model.h5')
-UPLOAD_FOLDER = '/home/nubaf/Git-Projects/colorization/files'
+UPLOAD_FOLDER = './files'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 files = [f for f in os.listdir('.') if os.path.isfile(f)]
 checkInception = False
@@ -32,7 +29,6 @@ for f in files:
 if not checkInception:
     inception = InceptionResNetV2(weights='imagenet', include_top=True)
     inception.save('inception.h5')
-inception.graph = graph
 
 
 def create_inception_embedding(grayscaled_rgb):
@@ -42,9 +38,8 @@ def create_inception_embedding(grayscaled_rgb):
         grayscaled_rgb_resized.append(i)
     grayscaled_rgb_resized = np.array(grayscaled_rgb_resized)
     grayscaled_rgb_resized = preprocess_input(grayscaled_rgb_resized)
-    with graph.as_default():
-        embed = inception.predict(grayscaled_rgb_resized)
-        return embed
+    embed = inception.predict(grayscaled_rgb_resized)
+    return embed
 
 
 def allowed_file(filename):
@@ -54,13 +49,13 @@ def allowed_file(filename):
 
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
-
+    index_page = 'index.html'
     if request.method == 'POST':
         try:
             url = request.form['url']
             if 'examples' in url:
                 color_file = process(url)
-                return render_template('index.html', res='static/examples/girl.jpg')
+                return render_template(index_page,res='static/examples/girl.jpg')
         # check if the post request has the file part
         except:
             logging.exception('')
@@ -77,10 +72,10 @@ def upload_file():
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             color_file = process(file.filename)
-            return render_template('index.html', og=color_file[0], res=color_file[1])
+            return render_template(index_page, og=color_file[0], res=color_file[1])
 
 
-    return render_template('index.html')
+    return render_template(index_page)
 
 def process(img):
     if 'examples' in img:
@@ -98,21 +93,19 @@ def process(img):
     new_im.save('static/processed_png/' + name + ".png","PNG")
     a = np.array(img_to_array(load_img('static/processed_png/' + name +'.png')))
     a = a.reshape(1,256,256,3)
-    #gray_me = gray2rgb(rgb2gray(1.0/255*a))
     color_me_embed = create_inception_embedding(a)
     a = rgb2lab(1.0/255*a)[:,:,:,0]
     a = a.reshape(a.shape+(1,))
-    with graph.as_default():
-        output = model.predict([a, color_me_embed])
-        output = output * 128
-        for i in range(len(output)):
-            cur = np.zeros((256, 256, 3))
-            cur[:,:,0] = a[i][:,:,0]
-            cur[:,:,1:] = output[i]
-            imsave(f'static/colored_img/{name}.png',(lab2rgb(cur)))
-            trim(Image.open(f'static/processed_png/{name}.png')).save(f'static/processed_png/{name}.png')
-            trim(Image.open(f'static/colored_img/{name}.png')).save(f'static/colored_img/{name}.png')
-            return (f'static/processed_png/{name}.png',f'static/colored_img/{name}.png') 
+    output = model.predict([a, color_me_embed])
+    output = output * 128
+    for i in range(len(output)):
+        cur = np.zeros((256, 256, 3))
+        cur[:,:,0] = a[i][:,:,0]
+        cur[:,:,1:] = output[i]
+        imsave(f'static/colored_img/{name}.png',(lab2rgb(cur)))
+        trim(Image.open(f'static/processed_png/{name}.png')).save(f'static/processed_png/{name}.png')
+        trim(Image.open(f'static/colored_img/{name}.png')).save(f'static/colored_img/{name}.png')
+        return (f'static/processed_png/{name}.png',f'static/colored_img/{name}.png') 
 
 
 def trim(im):

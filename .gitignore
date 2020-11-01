@@ -1,0 +1,6 @@
+venv/*
+test_files/*
+static/*
+files/*
+get-pip.py
+*.h5
