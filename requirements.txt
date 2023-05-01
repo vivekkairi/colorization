@@ -2,7 +2,7 @@
 # https://github.com/damnever/pigar
 
 # app.py: 1
-Flask == 1.0.2
+Flask == 2.3.2
 
 # app.py: 10,12
 Keras == 2.2.5
